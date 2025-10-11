@@ -1,0 +1,822 @@
+options:
+  parameters:
+    author: sact
+    catch_exceptions: 'True'
+    category: '[GRC Hier Blocks]'
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: ''
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: no_gui
+    hier_block_src_path: '.:'
+    id: Scanner
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Not titled yet
+    window_size: (1000,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: bw
+  id: variable
+  parameters:
+    comment: ''
+    value: '125000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [424, 88.0]
+    rotation: 0
+    state: enabled
+- name: center_freq
+  id: variable
+  parameters:
+    comment: ''
+    value: '868000000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [280, 8.0]
+    rotation: 0
+    state: enabled
+- name: center_freq_0
+  id: variable
+  parameters:
+    comment: ''
+    value: '433000000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [408, 168.0]
+    rotation: 0
+    state: enabled
+- name: cr
+  id: variable
+  parameters:
+    comment: ''
+    value: '2'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [672, 8.0]
+    rotation: 0
+    state: enabled
+- name: frame_period
+  id: variable
+  parameters:
+    comment: ''
+    value: '1000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [752, 20.0]
+    rotation: 0
+    state: enabled
+- name: has_crc
+  id: variable
+  parameters:
+    comment: ''
+    value: 'True'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [536, 8.0]
+    rotation: 0
+    state: enabled
+- name: impl_head
+  id: variable
+  parameters:
+    comment: ''
+    value: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [456, 8.0]
+    rotation: 0
+    state: enabled
+- name: pay_len
+  id: variable
+  parameters:
+    comment: ''
+    value: '11'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [608, 8.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: '500000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [200, 8.0]
+    rotation: 0
+    state: enabled
+- name: sf
+  id: variable
+  parameters:
+    comment: ''
+    value: '10'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [368, 88.0]
+    rotation: 0
+    state: enabled
+- name: soft_decoding
+  id: variable
+  parameters:
+    comment: ''
+    value: 'True'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [528, 88.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_0
+  id: epy_block
+  parameters:
+    _source_code: "import numpy as np\nfrom gnuradio import gr\nimport paho.mqtt.client\
+      \ as mqtt\nimport threading\nimport queue\n\n\nclass mqtt_publisher(gr.sync_block):\n\
+      \    \"\"\"\n    MQTT Publisher Block (Local Broker)\n    - Nh\u1EADn byte stream\
+      \ t\u1EEB GNU Radio\n    - Gom th\xE0nh chu\u1ED7i (theo '\\n') v\xE0 publish\
+      \ l\xEAn MQTT\n    \"\"\"\n\n    def __init__(self, host=\"127.0.0.1\", port=1883,\n\
+      \                 username=None, password=None,\n                 topic=\"gnuradio/output\"\
+      ):\n        gr.sync_block.__init__(\n            self,\n            name=\"\
+      MQTT Publisher\",\n            in_sig=[np.uint8],\n            out_sig=None\n\
+      \        )\n\n        self.host = host\n        self.port = port\n        self.username\
+      \ = username\n        self.password = password\n        self.topic = topic\n\
+      \n        self.buffer = bytearray()\n\n        # MQTT client\n        self.client\
+      \ = mqtt.Client()\n        if self.username and self.password:\n           \
+      \ self.client.username_pw_set(self.username, self.password)\n\n        self.client.on_connect\
+      \ = self.on_connect\n\n        # Thread MQTT\n        self.mqtt_thread = threading.Thread(target=self._mqtt_loop,\
+      \ daemon=True)\n        self.mqtt_thread.start()\n\n    def on_connect(self,\
+      \ client, userdata, flags, rc):\n        if rc == 0:\n            print(\"[MQTT]\
+      \ Publisher connected to local broker\")\n        else:\n            print(\"\
+      [MQTT] Publisher failed, rc=\", rc)\n\n    def _mqtt_loop(self):\n        self.client.connect(self.host,\
+      \ self.port, keepalive=60)\n        self.client.loop_forever()\n\n    def work(self,\
+      \ input_items, output_items):\n        data = input_items[0]\n        \n   \
+      \     if len(data) > 0:\n            msg = bytes(data).decode(\"utf-8\", errors=\"\
+      ignore\")\n            if msg.strip():\n                self.client.publish(self.topic,\
+      \ msg)\n                print(f\"[MQTT] Published: {msg}\")\n\n        return\
+      \ len(data)\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    host: '''127.0.0.1'''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    password: '''1'''
+    port: '1883'
+    topic: '''data/output'''
+    username: '''root'''
+  states:
+    _io_cache: "('MQTT Publisher', 'mqtt_publisher', [('host', \"'127.0.0.1'\"), ('port',\
+      \ '1883'), ('username', 'None'), ('password', 'None'), ('topic', \"'gnuradio/output'\"\
+      )], [('0', 'byte', 1)], [], \"\\n    MQTT Publisher Block (Local Broker)\\n\
+      \    - Nh\u1EADn byte stream t\u1EEB GNU Radio\\n    - Gom th\xE0nh chu\u1ED7\
+      i (theo '\\n') v\xE0 publish l\xEAn MQTT\\n    \", ['host', 'password', 'port',\
+      \ 'topic', 'username'])"
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1560, 412.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_1
+  id: epy_block
+  parameters:
+    _source_code: "import numpy as np\nfrom gnuradio import gr\nimport paho.mqtt.client\
+      \ as mqtt\nimport threading\nimport queue\n\nclass mqtt_subscriber(gr.sync_block):\n\
+      \    \"\"\"\n    MQTT Subscriber Block (Local Broker)\n    - Nh\u1EADn message\
+      \ t\u1EEB Node-RED ho\u1EB7c client MQTT kh\xE1c\n    - Segment payload th\xE0\
+      nh subpayload (<= max_len, th\xEAm '\\n')\n    - Xu\u1EA5t ra stream GNU Radio\
+      \ (byte)\n    \"\"\"\n\n    def __init__(self, host=\"127.0.0.1\", port=1883,\n\
+      \                 username=None, password=None,\n                 topic=\"gnuradio/input\"\
+      , buf_len=1024, max_len=255):\n        gr.sync_block.__init__(\n           \
+      \ self,\n            name=\"MQTT Subscriber\",\n            in_sig=None,\n \
+      \           out_sig=[np.uint8]\n        )\n\n        self.host = host\n    \
+      \    self.port = port\n        self.username = username\n        self.password\
+      \ = password\n        self.topic = topic\n        self.buf_len = buf_len\n \
+      \       self.max_len = max_len\n\n        self.queue = queue.Queue()\n\n   \
+      \     # MQTT client\n        self.client = mqtt.Client()\n        if self.username\
+      \ and self.password:\n            self.client.username_pw_set(self.username,\
+      \ self.password)\n\n        self.client.on_connect = self.on_connect\n     \
+      \   self.client.on_message = self.on_message\n\n        # Thread MQTT\n    \
+      \    self.mqtt_thread = threading.Thread(target=self._mqtt_loop, daemon=True)\n\
+      \        self.mqtt_thread.start()\n\n    def on_connect(self, client, userdata,\
+      \ flags, rc):\n        if rc == 0:\n            print(\"[MQTT] Connected to\
+      \ local broker\")\n            client.subscribe(self.topic)\n        else:\n\
+      \            print(\"[MQTT] Failed to connect, rc=\", rc)\n\n    def on_message(self,\
+      \ client, userdata, msg):\n        text = msg.payload.decode(\"utf-8\")\n  \
+      \      print(f\"[MQTT] Received: {text}\")\n\n        # Segmenter\n        data\
+      \ = text.encode(\"utf-8\")\n        for i in range(0, len(data), self.max_len):\n\
+      \            sub = data[i:i + self.max_len]\n            if len(sub) < 2:\n\
+      \                sub = sub + b' '\n            sub = sub + b'\\n'\n        \
+      \    arr = np.frombuffer(sub, dtype=np.uint8)\n            for b in arr:\n \
+      \               self.queue.put(b)\n\n    def _mqtt_loop(self):\n        self.client.connect(self.host,\
+      \ self.port, keepalive=60)\n        self.client.loop_forever()\n\n    def work(self,\
+      \ input_items, output_items):\n        out = output_items[0]\n\n        i =\
+      \ 0\n        while not self.queue.empty() and i < len(out):\n            out[i]\
+      \ = self.queue.get()\n            i += 1\n\n        return i\n"
+    affinity: ''
+    alias: ''
+    buf_len: '1024'
+    comment: ''
+    host: '''127.0.0.1'''
+    max_len: '255'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    password: '''1'''
+    port: '1883'
+    topic: '''data/input'''
+    username: '''root'''
+  states:
+    _io_cache: "('MQTT Subscriber', 'mqtt_subscriber', [('host', \"'127.0.0.1'\"),\
+      \ ('port', '1883'), ('username', 'None'), ('password', 'None'), ('topic', \"\
+      'gnuradio/input'\"), ('buf_len', '1024'), ('max_len', '255')], [], [('0', 'byte',\
+      \ 1)], \"\\n    MQTT Subscriber Block (Local Broker)\\n    - Nh\u1EADn message\
+      \ t\u1EEB Node-RED ho\u1EB7c client MQTT kh\xE1c\\n    - Segment payload th\xE0\
+      nh subpayload (<= max_len, th\xEAm '\\n')\\n    - Xu\u1EA5t ra stream GNU Radio\
+      \ (byte)\\n    \", ['buf_len', 'host', 'max_len', 'password', 'port', 'topic',\
+      \ 'username'])"
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [88, 532.0]
+    rotation: 0
+    state: enabled
+- name: iio_pluto_sink_1
+  id: iio_pluto_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    attenuation1: '10.0'
+    bandwidth: '20000000'
+    buffer_size: '32768'
+    comment: ''
+    cyclic: 'False'
+    filter: ''
+    filter_source: '''Auto'''
+    fpass: '0'
+    frequency: center_freq_0
+    fstop: '0'
+    len_tag_key: ''
+    samplerate: samp_rate
+    type: fc32
+    uri: usb:1.5.5
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1416, 532.0]
+    rotation: 0
+    state: enabled
+- name: iio_pluto_source_0
+  id: iio_pluto_source
+  parameters:
+    affinity: ''
+    alias: ''
+    bandwidth: '20000000'
+    bbdc: 'True'
+    buffer_size: '32768'
+    comment: ''
+    filter: ''
+    filter_source: '''Auto'''
+    fpass: '0'
+    frequency: center_freq
+    fstop: '0'
+    gain1: '''slow_attack'''
+    len_tag_key: packet_len
+    manual_gain1: '64'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    quadrature: 'True'
+    rfdc: 'True'
+    samplerate: samp_rate
+    type: fc32
+    uri: usb:1.5.5
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [48, 220.0]
+    rotation: 0
+    state: enabled
+- name: import_0
+  id: import
+  parameters:
+    alias: ''
+    comment: ''
+    imports: import numpy as np
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [200, 80.0]
+    rotation: 0
+    state: enabled
+- name: lora_sdr_add_crc_0
+  id: lora_sdr_add_crc
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    has_crc: has_crc
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [688, 588.0]
+    rotation: 0
+    state: enabled
+- name: lora_sdr_crc_verif_0
+  id: lora_sdr_crc_verif
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    output_crc_check: 'False'
+    print_rx_msg: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1552, 272.0]
+    rotation: 0
+    state: enabled
+- name: lora_sdr_deinterleaver_0
+  id: lora_sdr_deinterleaver
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    soft_decoding: soft_decoding
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [888, 304.0]
+    rotation: 0
+    state: enabled
+- name: lora_sdr_dewhitening_0
+  id: lora_sdr_dewhitening
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1432, 288.0]
+    rotation: 0
+    state: enabled
+- name: lora_sdr_fft_demod_0
+  id: lora_sdr_fft_demod
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    max_log_approx: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    soft_decoding: soft_decoding
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [552, 304.0]
+    rotation: 0
+    state: enabled
+- name: lora_sdr_frame_sync_0
+  id: lora_sdr_frame_sync
+  parameters:
+    affinity: ''
+    alias: ''
+    bandwidth: bw
+    center_freq: int(center_freq)
+    comment: ''
+    impl_head: impl_head
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    os_factor: int(samp_rate/bw)
+    preamb_len: '8'
+    sf: sf
+    show_log_port: 'False'
+    sync_word: '18'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [392, 272.0]
+    rotation: 0
+    state: enabled
+- name: lora_sdr_gray_demap_0
+  id: lora_sdr_gray_demap
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    sf: sf
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1080, 588.0]
+    rotation: 0
+    state: enabled
+- name: lora_sdr_gray_mapping_0
+  id: lora_sdr_gray_mapping
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    soft_decoding: soft_decoding
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [720, 304.0]
+    rotation: 0
+    state: enabled
+- name: lora_sdr_hamming_dec_0
+  id: lora_sdr_hamming_dec
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    soft_decoding: soft_decoding
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1064, 304.0]
+    rotation: 0
+    state: enabled
+- name: lora_sdr_hamming_enc_0
+  id: lora_sdr_hamming_enc
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    cr: cr
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    sf: sf
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [816, 580.0]
+    rotation: 0
+    state: enabled
+- name: lora_sdr_header_0
+  id: lora_sdr_header
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    cr: cr
+    has_crc: has_crc
+    impl_head: impl_head
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [544, 572.0]
+    rotation: 0
+    state: enabled
+- name: lora_sdr_header_decoder_0
+  id: lora_sdr_header_decoder
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    cr: cr
+    has_crc: has_crc
+    impl_head: impl_head
+    ldro: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    pay_len: pay_len
+    print_header: 'True'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1240, 288.0]
+    rotation: 0
+    state: enabled
+- name: lora_sdr_interleaver_0
+  id: lora_sdr_interleaver
+  parameters:
+    affinity: ''
+    alias: ''
+    bw: '125000'
+    comment: ''
+    cr: cr
+    ldro: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    sf: sf
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [952, 572.0]
+    rotation: 0
+    state: enabled
+- name: lora_sdr_modulate_0
+  id: lora_sdr_modulate
+  parameters:
+    affinity: ''
+    alias: ''
+    bw: bw
+    comment: ''
+    frame_zero_padd: int(20*2**sf*samp_rate/bw)
+    maxoutbuf: '0'
+    minoutbuf: '10000000'
+    preamb_len: '8'
+    samp_rate: samp_rate
+    sf: sf
+    sync_words: '[8,16]'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1232, 572.0]
+    rotation: 0
+    state: enabled
+- name: lora_sdr_whitening_0
+  id: lora_sdr_whitening
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    is_hex: 'False'
+    length_tag_name: '''packet_len'''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    separator: '''\n'''
+    source_type: file_source
+    use_length_tag: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [336, 584.0]
+    rotation: 0
+    state: enabled
+- name: qtgui_freq_sink_x_0
+  id: qtgui_freq_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    average: '1.0'
+    axislabels: 'True'
+    bw: samp_rate
+    color1: '"blue"'
+    color10: '"dark blue"'
+    color2: '"red"'
+    color3: '"green"'
+    color4: '"black"'
+    color5: '"cyan"'
+    color6: '"magenta"'
+    color7: '"yellow"'
+    color8: '"dark red"'
+    color9: '"dark green"'
+    comment: ''
+    ctrlpanel: 'False'
+    fc: '868000000'
+    fftsize: '1024'
+    freqhalf: 'True'
+    grid: 'False'
+    gui_hint: ''
+    label: Relative Gain
+    label1: ''
+    label10: ''''''
+    label2: ''''''
+    label3: ''''''
+    label4: ''''''
+    label5: ''''''
+    label6: ''''''
+    label7: ''''''
+    label8: ''''''
+    label9: ''''''
+    legend: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    name: '""'
+    nconnections: '1'
+    norm_window: 'False'
+    showports: 'False'
+    tr_chan: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_tag: '""'
+    type: complex
+    units: dB
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    wintype: window.WIN_BLACKMAN_hARRIS
+    ymax: '10'
+    ymin: '-140'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [352, 480.0]
+    rotation: 0
+    state: disabled
+- name: qtgui_time_sink_x_0
+  id: qtgui_time_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    axislabels: 'True'
+    color1: blue
+    color10: dark blue
+    color2: red
+    color3: green
+    color4: black
+    color5: cyan
+    color6: magenta
+    color7: yellow
+    color8: dark red
+    color9: dark green
+    comment: ''
+    ctrlpanel: 'False'
+    entags: 'True'
+    grid: 'False'
+    gui_hint: ''
+    label1: Signal 1
+    label10: Signal 10
+    label2: Signal 2
+    label3: Signal 3
+    label4: Signal 4
+    label5: Signal 5
+    label6: Signal 6
+    label7: Signal 7
+    label8: Signal 8
+    label9: Signal 9
+    legend: 'True'
+    marker1: '-1'
+    marker10: '-1'
+    marker2: '-1'
+    marker3: '-1'
+    marker4: '-1'
+    marker5: '-1'
+    marker6: '-1'
+    marker7: '-1'
+    marker8: '-1'
+    marker9: '-1'
+    name: '""'
+    nconnections: '1'
+    size: '1024'
+    srate: samp_rate
+    stemplot: 'False'
+    style1: '1'
+    style10: '1'
+    style2: '1'
+    style3: '1'
+    style4: '1'
+    style5: '1'
+    style6: '1'
+    style7: '1'
+    style8: '1'
+    style9: '1'
+    tr_chan: '0'
+    tr_delay: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_slope: qtgui.TRIG_SLOPE_POS
+    tr_tag: '""'
+    type: complex
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    ylabel: Amplitude
+    ymax: '1'
+    ymin: '-1'
+    yunit: '""'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [360, 384.0]
+    rotation: 0
+    state: disabled
+
+connections:
+- [epy_block_1, '0', lora_sdr_whitening_0, '0']
+- [iio_pluto_source_0, '0', lora_sdr_frame_sync_0, '0']
+- [iio_pluto_source_0, '0', qtgui_freq_sink_x_0, '0']
+- [iio_pluto_source_0, '0', qtgui_time_sink_x_0, '0']
+- [lora_sdr_add_crc_0, '0', lora_sdr_hamming_enc_0, '0']
+- [lora_sdr_crc_verif_0, '0', epy_block_0, '0']
+- [lora_sdr_deinterleaver_0, '0', lora_sdr_hamming_dec_0, '0']
+- [lora_sdr_dewhitening_0, '0', lora_sdr_crc_verif_0, '0']
+- [lora_sdr_fft_demod_0, '0', lora_sdr_gray_mapping_0, '0']
+- [lora_sdr_frame_sync_0, '0', lora_sdr_fft_demod_0, '0']
+- [lora_sdr_gray_demap_0, '0', lora_sdr_modulate_0, '0']
+- [lora_sdr_gray_mapping_0, '0', lora_sdr_deinterleaver_0, '0']
+- [lora_sdr_hamming_dec_0, '0', lora_sdr_header_decoder_0, '0']
+- [lora_sdr_hamming_enc_0, '0', lora_sdr_interleaver_0, '0']
+- [lora_sdr_header_0, '0', lora_sdr_add_crc_0, '0']
+- [lora_sdr_header_decoder_0, '0', lora_sdr_dewhitening_0, '0']
+- [lora_sdr_header_decoder_0, frame_info, lora_sdr_frame_sync_0, frame_info]
+- [lora_sdr_interleaver_0, '0', lora_sdr_gray_demap_0, '0']
+- [lora_sdr_modulate_0, '0', iio_pluto_sink_1, '0']
+- [lora_sdr_whitening_0, '0', lora_sdr_header_0, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.11.0
