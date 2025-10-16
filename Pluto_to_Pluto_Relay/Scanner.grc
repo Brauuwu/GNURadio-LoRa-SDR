@@ -9,7 +9,7 @@ options:
     description: ''
     gen_cmake: 'On'
     gen_linking: dynamic
-    generate_options: no_gui
+    generate_options: qt_gui
     hier_block_src_path: '.:'
     id: Scanner
     max_nouts: '0'
@@ -33,6 +33,27 @@ options:
     state: enabled
 
 blocks:
+- name: attenuation
+  id: variable_qtgui_range
+  parameters:
+    comment: ''
+    gui_hint: ''
+    label: ''
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: float
+    start: '0'
+    step: '1'
+    stop: '100'
+    value: '50'
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1312, 60.0]
+    rotation: 0
+    state: enabled
 - name: bw
   id: variable
   parameters:
@@ -42,14 +63,14 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [424, 88.0]
+    coordinate: [512, 84.0]
     rotation: 0
     state: enabled
 - name: center_freq
   id: variable
   parameters:
     comment: ''
-    value: '868000000'
+    value: '433000000'
   states:
     bus_sink: false
     bus_source: false
@@ -61,12 +82,12 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '433000000'
+    value: '868000000'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [408, 168.0]
+    coordinate: [288, 76.0]
     rotation: 0
     state: enabled
 - name: cr
@@ -133,7 +154,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '500000'
+    value: '1000000'
   states:
     bus_sink: false
     bus_source: false
@@ -145,12 +166,12 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '10'
+    value: '7'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [368, 88.0]
+    coordinate: [456, 84.0]
     rotation: 0
     state: enabled
 - name: soft_decoding
@@ -162,7 +183,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [528, 88.0]
+    coordinate: [592, 84.0]
     rotation: 0
     state: enabled
 - name: epy_block_0
@@ -212,7 +233,157 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1560, 412.0]
+    coordinate: [1744, 124.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_0_0
+  id: epy_block
+  parameters:
+    _source_code: "import numpy as np\nfrom gnuradio import gr\nimport paho.mqtt.client\
+      \ as mqtt\nimport threading\nimport queue\n\n\nclass mqtt_publisher(gr.sync_block):\n\
+      \    \"\"\"\n    MQTT Publisher Block (Local Broker)\n    - Nh\u1EADn byte stream\
+      \ t\u1EEB GNU Radio\n    - Gom th\xE0nh chu\u1ED7i (theo '\\n') v\xE0 publish\
+      \ l\xEAn MQTT\n    \"\"\"\n\n    def __init__(self, host=\"127.0.0.1\", port=1883,\n\
+      \                 username=None, password=None,\n                 topic=\"gnuradio/output\"\
+      ):\n        gr.sync_block.__init__(\n            self,\n            name=\"\
+      MQTT Publisher\",\n            in_sig=[np.uint8],\n            out_sig=None\n\
+      \        )\n\n        self.host = host\n        self.port = port\n        self.username\
+      \ = username\n        self.password = password\n        self.topic = topic\n\
+      \n        self.buffer = bytearray()\n\n        # MQTT client\n        self.client\
+      \ = mqtt.Client()\n        if self.username and self.password:\n           \
+      \ self.client.username_pw_set(self.username, self.password)\n\n        self.client.on_connect\
+      \ = self.on_connect\n\n        # Thread MQTT\n        self.mqtt_thread = threading.Thread(target=self._mqtt_loop,\
+      \ daemon=True)\n        self.mqtt_thread.start()\n\n    def on_connect(self,\
+      \ client, userdata, flags, rc):\n        if rc == 0:\n            print(\"[MQTT]\
+      \ Publisher connected to local broker\")\n        else:\n            print(\"\
+      [MQTT] Publisher failed, rc=\", rc)\n\n    def _mqtt_loop(self):\n        self.client.connect(self.host,\
+      \ self.port, keepalive=60)\n        self.client.loop_forever()\n\n    def work(self,\
+      \ input_items, output_items):\n        data = input_items[0]\n        \n   \
+      \     if len(data) > 0:\n            msg = bytes(data).decode(\"utf-8\", errors=\"\
+      ignore\")\n            if msg.strip():\n                self.client.publish(self.topic,\
+      \ msg)\n                print(f\"[MQTT] Published: {msg}\")\n\n        return\
+      \ len(data)\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    host: '''127.0.0.1'''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    password: '''1'''
+    port: '1883'
+    topic: '''data/rssi'''
+    username: '''root'''
+  states:
+    _io_cache: "('MQTT Publisher', 'mqtt_publisher', [('host', \"'127.0.0.1'\"), ('port',\
+      \ '1883'), ('username', 'None'), ('password', 'None'), ('topic', \"'gnuradio/output'\"\
+      )], [('0', 'byte', 1)], [], \"\\n    MQTT Publisher Block (Local Broker)\\n\
+      \    - Nh\u1EADn byte stream t\u1EEB GNU Radio\\n    - Gom th\xE0nh chu\u1ED7\
+      i (theo '\\n') v\xE0 publish l\xEAn MQTT\\n    \", ['host', 'password', 'port',\
+      \ 'topic', 'username'])"
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1120, 12.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_0_1
+  id: epy_block
+  parameters:
+    _source_code: "import numpy as np\nfrom gnuradio import gr\nimport paho.mqtt.client\
+      \ as mqtt\nimport threading\nimport queue\n\n\nclass mqtt_publisher(gr.sync_block):\n\
+      \    \"\"\"\n    MQTT Publisher Block (Local Broker)\n    - Nh\u1EADn byte stream\
+      \ t\u1EEB GNU Radio\n    - Gom th\xE0nh chu\u1ED7i (theo '\\n') v\xE0 publish\
+      \ l\xEAn MQTT\n    \"\"\"\n\n    def __init__(self, host=\"127.0.0.1\", port=1883,\n\
+      \                 username=None, password=None,\n                 topic=\"gnuradio/output\"\
+      ):\n        gr.sync_block.__init__(\n            self,\n            name=\"\
+      MQTT Publisher\",\n            in_sig=[np.uint8],\n            out_sig=None\n\
+      \        )\n\n        self.host = host\n        self.port = port\n        self.username\
+      \ = username\n        self.password = password\n        self.topic = topic\n\
+      \n        self.buffer = bytearray()\n\n        # MQTT client\n        self.client\
+      \ = mqtt.Client()\n        if self.username and self.password:\n           \
+      \ self.client.username_pw_set(self.username, self.password)\n\n        self.client.on_connect\
+      \ = self.on_connect\n\n        # Thread MQTT\n        self.mqtt_thread = threading.Thread(target=self._mqtt_loop,\
+      \ daemon=True)\n        self.mqtt_thread.start()\n\n    def on_connect(self,\
+      \ client, userdata, flags, rc):\n        if rc == 0:\n            print(\"[MQTT]\
+      \ Publisher connected to local broker\")\n        else:\n            print(\"\
+      [MQTT] Publisher failed, rc=\", rc)\n\n    def _mqtt_loop(self):\n        self.client.connect(self.host,\
+      \ self.port, keepalive=60)\n        self.client.loop_forever()\n\n    def work(self,\
+      \ input_items, output_items):\n        data = input_items[0]\n        \n   \
+      \     if len(data) > 0:\n            msg = bytes(data).decode(\"utf-8\", errors=\"\
+      ignore\")\n            if msg.strip():\n                self.client.publish(self.topic,\
+      \ msg)\n                print(f\"[MQTT] Published: {msg}\")\n\n        return\
+      \ len(data)\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    host: '''127.0.0.1'''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    password: '''1'''
+    port: '1883'
+    topic: '''data/hardwaregain'''
+    username: '''root'''
+  states:
+    _io_cache: "('MQTT Publisher', 'mqtt_publisher', [('host', \"'127.0.0.1'\"), ('port',\
+      \ '1883'), ('username', 'None'), ('password', 'None'), ('topic', \"'gnuradio/output'\"\
+      )], [('0', 'byte', 1)], [], \"\\n    MQTT Publisher Block (Local Broker)\\n\
+      \    - Nh\u1EADn byte stream t\u1EEB GNU Radio\\n    - Gom th\xE0nh chu\u1ED7\
+      i (theo '\\n') v\xE0 publish l\xEAn MQTT\\n    \", ['host', 'password', 'port',\
+      \ 'topic', 'username'])"
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1104, 116.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_0_2
+  id: epy_block
+  parameters:
+    _source_code: "import numpy as np\nfrom gnuradio import gr\nimport paho.mqtt.client\
+      \ as mqtt\nimport threading\nimport queue\n\n\nclass mqtt_publisher(gr.sync_block):\n\
+      \    \"\"\"\n    MQTT Publisher Block (Local Broker)\n    - Nh\u1EADn byte stream\
+      \ t\u1EEB GNU Radio\n    - Gom th\xE0nh chu\u1ED7i (theo '\\n') v\xE0 publish\
+      \ l\xEAn MQTT\n    \"\"\"\n\n    def __init__(self, host=\"127.0.0.1\", port=1883,\n\
+      \                 username=None, password=None,\n                 topic=\"gnuradio/output\"\
+      ):\n        gr.sync_block.__init__(\n            self,\n            name=\"\
+      MQTT Publisher\",\n            in_sig=[np.uint8],\n            out_sig=None\n\
+      \        )\n\n        self.host = host\n        self.port = port\n        self.username\
+      \ = username\n        self.password = password\n        self.topic = topic\n\
+      \n        self.buffer = bytearray()\n\n        # MQTT client\n        self.client\
+      \ = mqtt.Client()\n        if self.username and self.password:\n           \
+      \ self.client.username_pw_set(self.username, self.password)\n\n        self.client.on_connect\
+      \ = self.on_connect\n\n        # Thread MQTT\n        self.mqtt_thread = threading.Thread(target=self._mqtt_loop,\
+      \ daemon=True)\n        self.mqtt_thread.start()\n\n    def on_connect(self,\
+      \ client, userdata, flags, rc):\n        if rc == 0:\n            print(\"[MQTT]\
+      \ Publisher connected to local broker\")\n        else:\n            print(\"\
+      [MQTT] Publisher failed, rc=\", rc)\n\n    def _mqtt_loop(self):\n        self.client.connect(self.host,\
+      \ self.port, keepalive=60)\n        self.client.loop_forever()\n\n    def work(self,\
+      \ input_items, output_items):\n        data = input_items[0]\n        \n   \
+      \     if len(data) > 0:\n            msg = bytes(data).decode(\"utf-8\", errors=\"\
+      ignore\")\n            if msg.strip():\n                self.client.publish(self.topic,\
+      \ msg)\n                print(f\"[MQTT] Published: {msg}\")\n\n        return\
+      \ len(data)\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    host: '''127.0.0.1'''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    password: '''1'''
+    port: '1883'
+    topic: '''data/hex'''
+    username: '''root'''
+  states:
+    _io_cache: "('MQTT Publisher', 'mqtt_publisher', [('host', \"'127.0.0.1'\"), ('port',\
+      \ '1883'), ('username', 'None'), ('password', 'None'), ('topic', \"'gnuradio/output'\"\
+      )], [('0', 'byte', 1)], [], \"\\n    MQTT Publisher Block (Local Broker)\\n\
+      \    - Nh\u1EADn byte stream t\u1EEB GNU Radio\\n    - Gom th\xE0nh chu\u1ED7\
+      i (theo '\\n') v\xE0 publish l\xEAn MQTT\\n    \", ['host', 'password', 'port',\
+      \ 'topic', 'username'])"
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1768, 364.0]
     rotation: 0
     state: enabled
 - name: epy_block_1
@@ -275,7 +446,274 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [88, 532.0]
+    coordinate: [88, 420.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_2
+  id: epy_block
+  parameters:
+    _source_code: "import numpy as np\nfrom gnuradio import gr\nimport adi\nimport\
+      \ time\n\nclass pluto_rssi_stream_source(gr.sync_block):\n    \"\"\"\n    GRC\
+      \ Block: \u0110\u1ECDc RSSI t\u1EEB Pluto v\xE0 xu\u1EA5t ra d\u01B0\u1EDBi\
+      \ d\u1EA1ng Byte Stream (c\u1ED5ng t\xEDm).\n    \n    PHI\xCAN B\u1EA2N S\u1EEC\
+      A \u0110\u1ED4I: Kh\u1ED1i n\xE0y t\u1EA1o ra m\u1ED9t lu\u1ED3ng byte thay\
+      \ v\xEC message.\n    \u0110\xE2y l\xE0 c\xE1ch l\xE0m ph\u1EE9c t\u1EA1p h\u01A1\
+      n v\xE0 \xEDt \u0111\u01B0\u1EE3c khuy\u1EBFn kh\xEDch.\n    \"\"\"\n    def\
+      \ __init__(self, sdr_uri='ip:192.168.2.1', update_interval=1.0):\n        gr.sync_block.__init__(\n\
+      \            self,\n            name='Pluto RSSI Source',\n            in_sig=[],\n\
+      \            # \u0110\u1ECANH NGH\u0128A \u0110\u1EA6U RA L\xC0 BYTE STREAM\
+      \ (m\xE0u t\xEDm)\n            out_sig=[np.byte] \n        )\n\n        self.sdr_uri\
+      \ = sdr_uri\n        self.update_interval = update_interval\n        self.last_update_time\
+      \ = 0\n        \n        # B\u1ED9 \u0111\u1EC7m (buffer) n\u1ED9i b\u1ED9 \u0111\
+      \u1EC3 ch\u1EE9a c\xE1c byte \u0111ang ch\u1EDD \u0111\u01B0\u1EE3c g\u1EED\
+      i \u0111i\n        self.pending_bytes = bytearray()\n\n    def work(self, input_items,\
+      \ output_items):\n        out_buffer = output_items[0]\n        n_out = len(out_buffer)\
+      \ # S\u1ED1 byte c\xF3 th\u1EC3 ghi ra \u1EDF l\u1EA7n g\u1ECDi n\xE0y\n   \
+      \     \n        current_time = time.time()\n        \n        # 1. Ki\u1EC3\
+      m tra xem \u0111\xE3 \u0111\u1EBFn l\xFAc \u0111\u1ECDc gi\xE1 tr\u1ECB m\u1EDB\
+      i t\u1EEB SDR ch\u01B0a\n        if (current_time - self.last_update_time) >\
+      \ self.update_interval:\n            self.last_update_time = current_time\n\
+      \            \n            try:\n                sdr = adi.Pluto(self.sdr_uri)\n\
+      \                rssi_raw = sdr._ctrl.find_channel('voltage0').attrs['rssi'].value\n\
+      \                rssi_str = str(int(float(rssi_raw.split()[0])))\n         \
+      \       \n                # Th\xEAm d\u1EEF li\u1EC7u m\u1EDBi (\u0111\xE3 m\xE3\
+      \ h\xF3a) v\xE0o b\u1ED9 \u0111\u1EC7m \u0111ang ch\u1EDD\n                self.pending_bytes.extend(rssi_str.encode('utf-8'))\n\
+      \                del sdr\n            except Exception as e:\n             \
+      \   print(f\"[Pluto RSSI Stream] L\u1ED7i: {e}\")\n\n        # 2. Ki\u1EC3m\
+      \ tra xem c\xF3 byte n\xE0o \u0111ang ch\u1EDD trong b\u1ED9 \u0111\u1EC7m kh\xF4\
+      ng\n        if len(self.pending_bytes) > 0:\n            # X\xE1c \u0111\u1ECB\
+      nh s\u1ED1 byte s\u1EBD \u0111\u01B0\u1EE3c ghi ra l\u1EA7n n\xE0y\n       \
+      \     # (kh\xF4ng th\u1EC3 nhi\u1EC1u h\u01A1n dung l\u01B0\u1EE3ng c\u1EE7\
+      a out_buffer)\n            num_to_write = min(n_out, len(self.pending_bytes))\n\
+      \            \n            # Sao ch\xE9p byte t\u1EEB b\u1ED9 \u0111\u1EC7m\
+      \ \u0111ang ch\u1EDD sang b\u1ED9 \u0111\u1EC7m \u0111\u1EA7u ra\n         \
+      \   out_buffer[:num_to_write] = self.pending_bytes[:num_to_write]\n        \
+      \    \n            # X\xF3a c\xE1c byte \u0111\xE3 \u0111\u01B0\u1EE3c ghi kh\u1ECF\
+      i b\u1ED9 \u0111\u1EC7m \u0111ang ch\u1EDD\n            self.pending_bytes =\
+      \ self.pending_bytes[num_to_write:]\n            \n            # Tr\u1EA3 v\u1EC1\
+      \ s\u1ED1 byte \u0111\xE3 th\u1EF1c s\u1EF1 ghi ra\n            return num_to_write\n\
+      \        else:\n            # N\u1EBFu kh\xF4ng c\xF3 g\xEC \u0111\u1EC3 ghi,\
+      \ tr\u1EA3 v\u1EC1 0\n            return 0\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    sdr_uri: '''ip:192.168.2.1'''
+    update_interval: '1.0'
+  states:
+    _io_cache: "('Pluto RSSI Source', 'pluto_rssi_stream_source', [('sdr_uri', \"\
+      'ip:192.168.2.1'\"), ('update_interval', '1.0')], [], [('0', 'byte', 1)], '\\\
+      n    GRC Block: \u0110\u1ECDc RSSI t\u1EEB Pluto v\xE0 xu\u1EA5t ra d\u01B0\u1EDB\
+      i d\u1EA1ng Byte Stream (c\u1ED5ng t\xEDm).\\n    \\n    PHI\xCAN B\u1EA2N S\u1EEC\
+      A \u0110\u1ED4I: Kh\u1ED1i n\xE0y t\u1EA1o ra m\u1ED9t lu\u1ED3ng byte thay\
+      \ v\xEC message.\\n    \u0110\xE2y l\xE0 c\xE1ch l\xE0m ph\u1EE9c t\u1EA1p h\u01A1\
+      n v\xE0 \xEDt \u0111\u01B0\u1EE3c khuy\u1EBFn kh\xEDch.\\n    ', ['sdr_uri',\
+      \ 'update_interval'])"
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [896, 36.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_3
+  id: epy_block
+  parameters:
+    _source_code: "import numpy as np\nfrom gnuradio import gr\nimport adi\nimport\
+      \ time\n\nclass pluto_gain_stream_source(gr.sync_block):\n    \"\"\"\n    GRC\
+      \ Block: \u0110\u1ECDc Hardware Gain t\u1EEB Pluto v\xE0 xu\u1EA5t ra d\u01B0\
+      \u1EDBi d\u1EA1ng Byte Stream (c\u1ED5ng t\xEDm).\n\n    PHI\xCAN B\u1EA2N S\u1EEC\
+      A \u0110\u1ED4I: Kh\u1ED1i n\xE0y t\u1EA1o ra m\u1ED9t lu\u1ED3ng byte thay\
+      \ v\xEC message.\n    \u0110\xE2y l\xE0 c\xE1ch l\xE0m ph\u1EE9c t\u1EA1p h\u01A1\
+      n v\xE0 \xEDt \u0111\u01B0\u1EE3c khuy\u1EBFn kh\xEDch.\n    \"\"\"\n    def\
+      \ __init__(self, sdr_uri='ip:192.168.2.1', update_interval=1.0):\n        gr.sync_block.__init__(\n\
+      \            self,\n            name='Pluto Gain Source',\n            in_sig=[],\n\
+      \            # \u0110\u1ECANH NGH\u0128A \u0110\u1EA6U RA L\xC0 BYTE STREAM\
+      \ (m\xE0u t\xEDm)\n            out_sig=[np.byte]\n        )\n\n        self.sdr_uri\
+      \ = sdr_uri\n        self.update_interval = update_interval\n        self.last_update_time\
+      \ = 0\n        \n        # B\u1ED9 \u0111\u1EC7m (buffer) n\u1ED9i b\u1ED9 \u0111\
+      \u1EC3 ch\u1EE9a c\xE1c byte \u0111ang ch\u1EDD \u0111\u01B0\u1EE3c g\u1EED\
+      i \u0111i\n        self.pending_bytes = bytearray()\n\n    def work(self, input_items,\
+      \ output_items):\n        out_buffer = output_items[0]\n        n_out = len(out_buffer)\
+      \ # S\u1ED1 byte c\xF3 th\u1EC3 ghi ra \u1EDF l\u1EA7n g\u1ECDi n\xE0y\n   \
+      \     \n        current_time = time.time()\n        \n        # 1. Ki\u1EC3\
+      m tra xem \u0111\xE3 \u0111\u1EBFn l\xFAc \u0111\u1ECDc gi\xE1 tr\u1ECB m\u1EDB\
+      i t\u1EEB SDR ch\u01B0a\n        if (current_time - self.last_update_time) >\
+      \ self.update_interval:\n            self.last_update_time = current_time\n\
+      \            \n            try:\n                sdr = adi.Pluto(self.sdr_uri)\n\
+      \                gain_raw = sdr._ctrl.find_channel('voltage0').attrs['hardwaregain'].value\n\
+      \                gain_str = str(int(float(gain_raw.split()[0])))\n         \
+      \       \n                # Th\xEAm d\u1EEF li\u1EC7u m\u1EDBi (\u0111\xE3 m\xE3\
+      \ h\xF3a) v\xE0o b\u1ED9 \u0111\u1EC7m \u0111ang ch\u1EDD\n                self.pending_bytes.extend(gain_str.encode('utf-8'))\n\
+      \                del sdr\n            except Exception as e:\n             \
+      \   print(f\"[Pluto Gain Stream] L\u1ED7i: {e}\")\n\n        # 2. Ki\u1EC3m\
+      \ tra xem c\xF3 byte n\xE0o \u0111ang ch\u1EDD trong b\u1ED9 \u0111\u1EC7m kh\xF4\
+      ng\n        if len(self.pending_bytes) > 0:\n            # X\xE1c \u0111\u1ECB\
+      nh s\u1ED1 byte s\u1EBD \u0111\u01B0\u1EE3c ghi ra l\u1EA7n n\xE0y\n       \
+      \     num_to_write = min(n_out, len(self.pending_bytes))\n            \n   \
+      \         # Sao ch\xE9p byte t\u1EEB b\u1ED9 \u0111\u1EC7m \u0111ang ch\u1EDD\
+      \ sang b\u1ED9 \u0111\u1EC7m \u0111\u1EA7u ra\n            out_buffer[:num_to_write]\
+      \ = self.pending_bytes[:num_to_write]\n            \n            # X\xF3a c\xE1\
+      c byte \u0111\xE3 \u0111\u01B0\u1EE3c ghi kh\u1ECFi b\u1ED9 \u0111\u1EC7m \u0111\
+      ang ch\u1EDD\n            self.pending_bytes = self.pending_bytes[num_to_write:]\n\
+      \            \n            # Tr\u1EA3 v\u1EC1 s\u1ED1 byte \u0111\xE3 th\u1EF1\
+      c s\u1EF1 ghi ra\n            return num_to_write\n        else:\n         \
+      \   # N\u1EBFu kh\xF4ng c\xF3 g\xEC \u0111\u1EC3 ghi, tr\u1EA3 v\u1EC1 0\n \
+      \           return 0\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    sdr_uri: '''ip:192.168.2.1'''
+    update_interval: '1.0'
+  states:
+    _io_cache: "('Pluto Gain Source', 'pluto_gain_stream_source', [('sdr_uri', \"\
+      'ip:192.168.2.1'\"), ('update_interval', '1.0')], [], [('0', 'byte', 1)], '\\\
+      n    GRC Block: \u0110\u1ECDc Hardware Gain t\u1EEB Pluto v\xE0 xu\u1EA5t ra\
+      \ d\u01B0\u1EDBi d\u1EA1ng Byte Stream (c\u1ED5ng t\xEDm).\\n\\n    PHI\xCA\
+      N B\u1EA2N S\u1EECA \u0110\u1ED4I: Kh\u1ED1i n\xE0y t\u1EA1o ra m\u1ED9t lu\u1ED3\
+      ng byte thay v\xEC message.\\n    \u0110\xE2y l\xE0 c\xE1ch l\xE0m ph\u1EE9\
+      c t\u1EA1p h\u01A1n v\xE0 \xEDt \u0111\u01B0\u1EE3c khuy\u1EBFn kh\xEDch.\\\
+      n    ', ['sdr_uri', 'update_interval'])"
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [896, 140.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_4
+  id: epy_block
+  parameters:
+    _source_code: "\"\"\"\nEmbedded Python Blocks:\n\nM\u1ED7i l\u1EA7n t\u1EC7p n\xE0\
+      y \u0111\u01B0\u1EE3c l\u01B0u, GRC s\u1EBD kh\u1EDFi t\u1EA1o l\u1EDBp \u0111\
+      \u1EA7u ti\xEAn m\xE0 n\xF3 t\xECm th\u1EA5y\n\u0111\u1EC3 l\u1EA5y c\xE1c c\u1ED5\
+      ng v\xE0 tham s\u1ED1 c\u1EE7a kh\u1ED1i c\u1EE7a b\u1EA1n. C\xE1c \u0111\u1ED1\
+      i s\u1ED1 c\u1EE7a __init__\ns\u1EBD l\xE0 c\xE1c tham s\u1ED1. T\u1EA5t c\u1EA3\
+      \ ch\xFAng \u0111\u1EC1u ph\u1EA3i c\xF3 gi\xE1 tr\u1ECB m\u1EB7c \u0111\u1ECB\
+      nh!\n\"\"\"\n\nimport numpy as np\nfrom gnuradio import gr\nimport pmt  # Th\u01B0\
+      \ vi\u1EC7n c\u1EA7n thi\u1EBFt \u0111\u1EC3 x\u1EED l\xFD message\n\nclass\
+      \ msg_to_byte_stream(gr.sync_block):\n    \"\"\"\n    Kh\u1ED1i Python chuy\u1EC3\
+      n \u0111\u1ED5i d\u1EEF li\u1EC7u t\u1EEB Message Port th\xE0nh Byte Stream.\n\
+      \    \n    - \u0110\u1EA7u v\xE0o: M\u1ED9t message port t\xEAn l\xE0 'msg_in'\
+      \ (m\xE0u x\xE1m).\n    - \u0110\u1EA7u ra: M\u1ED9t stream port ki\u1EC3u Byte\
+      \ (m\xE0u t\xEDm).\n    \"\"\"\n\n    def __init__(self):  # Kh\u1ED1i n\xE0\
+      y kh\xF4ng c\u1EA7n tham s\u1ED1\n        \"\"\"\n        H\xE0m kh\u1EDFi t\u1EA1\
+      o n\xE0y s\u1EBD \u0111\u01B0\u1EE3c g\u1ECDi khi GRC t\u1EA1o kh\u1ED1i.\n\
+      \        \"\"\"\n        gr.sync_block.__init__(\n            self,\n      \
+      \      name='Async to Char',  # T\xEAn s\u1EBD hi\u1EC3n th\u1ECB trong GRC\n\
+      \            in_sig=[],  # Kh\xF4ng c\xF3 \u0111\u1EA7u v\xE0o d\u1EA1ng stream\n\
+      \            out_sig=[np.byte]  # \u0110\u1EA7u ra l\xE0 m\u1ED9t lu\u1ED3ng\
+      \ byte (m\xE0u t\xEDm)\n        )\n        \n        # 1. \u0110\u0103ng k\xFD\
+      \ m\u1ED9t c\u1ED5ng nh\u1EADn message c\xF3 t\xEAn l\xE0 'msg_in'\n       \
+      \ self.message_port_register_in(pmt.intern('msg_in'))\n        \n        # 2.\
+      \ Thi\u1EBFt l\u1EADp h\xE0m 'handle_msg' \u0111\u1EC3 x\u1EED l\xFD b\u1EA5\
+      t k\u1EF3 message n\xE0o \u0111\u1EBFn c\u1ED5ng 'msg_in'\n        self.set_msg_handler(pmt.intern('msg_in'),\
+      \ self.handle_msg)\n        \n        # 3. T\u1EA1o m\u1ED9t b\u1ED9 \u0111\u1EC7\
+      m (buffer) n\u1ED9i b\u1ED9 \u0111\u1EC3 l\u01B0u tr\u1EEF c\xE1c byte t\u1EEB\
+      \ message\n        #    tr\u01B0\u1EDBc khi ch\xFAng \u0111\u01B0\u1EE3c g\u1EED\
+      i ra stream.\n        self.buffer = bytearray()\n\n    def handle_msg(self,\
+      \ msg):\n        \"\"\"\n        H\xE0m n\xE0y l\xE0 m\u1ED9t \"callback\",\
+      \ n\xF3 s\u1EBD t\u1EF1 \u0111\u1ED9ng \u0111\u01B0\u1EE3c g\u1ECDi m\u1ED7\
+      i khi\n        m\u1ED9t message \u0111\u01B0\u1EE3c g\u1EEDi \u0111\u1EBFn c\u1ED5\
+      ng 'msg_in'.\n        \"\"\"\n        # Ki\u1EC3m tra xem message c\xF3 ph\u1EA3\
+      i l\xE0 PDU h\u1EE3p l\u1EC7 kh\xF4ng (d\u1EA1ng pair)\n        if pmt.is_pair(msg):\n\
+      \            # Tr\xEDch xu\u1EA5t payload (ph\u1EA7n th\xE2n) c\u1EE7a message\n\
+      \            payload = pmt.cdr(msg)\n            \n            # Ki\u1EC3m tra\
+      \ xem payload c\xF3 ph\u1EA3i l\xE0 m\u1ED9t vector byte (u8vector) kh\xF4ng\n\
+      \            if pmt.is_u8vector(payload):\n                # Chuy\u1EC3n \u0111\
+      \u1ED5i u8vector th\xE0nh m\u1ED9t \u0111\u1ED1i t\u01B0\u1EE3ng byte c\u1EE7\
+      a Python\n                # v\xE0 th\xEAm v\xE0o cu\u1ED1i b\u1ED9 \u0111\u1EC7\
+      m n\u1ED9i b\u1ED9 c\u1EE7a ch\xFAng ta.\n                self.buffer.extend(pmt.u8vector_elements(payload))\n\
+      \        # N\u1EBFu message kh\xF4ng h\u1EE3p l\u1EC7, n\xF3 s\u1EBD b\u1ECB\
+      \ b\u1ECF qua.\n\n    def work(self, input_items, output_items):\n        \"\
+      \"\"\n        H\xE0m work() \u0111\u01B0\u1EE3c scheduler c\u1EE7a GNU Radio\
+      \ g\u1ECDi li\xEAn t\u1EE5c \u0111\u1EC3 x\u1EED l\xFD d\u1EEF li\u1EC7u stream.\n\
+      \        \"\"\"\n        # L\u1EA5y b\u1ED9 \u0111\u1EC7m \u0111\u1EA7u ra m\xE0\
+      \ ch\xFAng ta c\xF3 th\u1EC3 ghi v\xE0o\n        out = output_items[0]\n   \
+      \     \n        # S\u1ED1 l\u01B0\u1EE3ng byte t\u1ED1i \u0111a ch\xFAng ta\
+      \ c\xF3 th\u1EC3 ghi trong l\u1EA7n g\u1ECDi n\xE0y\n        n_out = len(out)\n\
+      \        \n        # Ki\u1EC3m tra xem b\u1ED9 \u0111\u1EC7m n\u1ED9i b\u1ED9\
+      \ c\u1EE7a ch\xFAng ta c\xF3 d\u1EEF li\u1EC7u \u0111\u1EC3 g\u1EEDi \u0111\
+      i kh\xF4ng\n        if len(self.buffer) > 0:\n            # X\xE1c \u0111\u1ECB\
+      nh s\u1ED1 byte s\u1EBD \u0111\u01B0\u1EE3c ghi: l\xE0 s\u1ED1 nh\u1ECF h\u01A1\
+      n gi\u1EEFa\n            # s\u1ED1 byte \u0111ang ch\u1EDD v\xE0 kh\xF4ng gian\
+      \ c\xF3 s\u1EB5n trong b\u1ED9 \u0111\u1EC7m \u0111\u1EA7u ra.\n           \
+      \ num_to_write = min(n_out, len(self.buffer))\n            \n            # Sao\
+      \ ch\xE9p d\u1EEF li\u1EC7u t\u1EEB b\u1ED9 \u0111\u1EC7m n\u1ED9i b\u1ED9 sang\
+      \ b\u1ED9 \u0111\u1EC7m \u0111\u1EA7u ra\n            out[:num_to_write] = self.buffer[:num_to_write]\n\
+      \            \n            # X\xF3a c\xE1c byte \u0111\xE3 \u0111\u01B0\u1EE3\
+      c ghi kh\u1ECFi b\u1ED9 \u0111\u1EC7m n\u1ED9i b\u1ED9\n            self.buffer\
+      \ = self.buffer[num_to_write:]\n            \n            # Tr\u1EA3 v\u1EC1\
+      \ s\u1ED1 byte \u0111\xE3 \u0111\u01B0\u1EE3c ghi ra\n            return num_to_write\n\
+      \        else:\n            # N\u1EBFu kh\xF4ng c\xF3 d\u1EEF li\u1EC7u trong\
+      \ b\u1ED9 \u0111\u1EC7m, kh\xF4ng ghi g\xEC c\u1EA3\n            return 0\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    _io_cache: "('Async to Char', 'msg_to_byte_stream', [], [('msg_in', 'message',\
+      \ 1)], [('0', 'byte', 1)], \"\\n    Kh\u1ED1i Python chuy\u1EC3n \u0111\u1ED5\
+      i d\u1EEF li\u1EC7u t\u1EEB Message Port th\xE0nh Byte Stream.\\n    \\n   \
+      \ - \u0110\u1EA7u v\xE0o: M\u1ED9t message port t\xEAn l\xE0 'msg_in' (m\xE0\
+      u x\xE1m).\\n    - \u0110\u1EA7u ra: M\u1ED9t stream port ki\u1EC3u Byte (m\xE0\
+      u t\xEDm).\\n    \", [])"
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1632, 400.0]
+    rotation: 0
+    state: enabled
+- name: iio_attr_source_0_0
+  id: iio_attr_source
+  parameters:
+    address: int("0x123",0)
+    affinity: ''
+    alias: ''
+    attr_type: '0'
+    attribute: '"rssi"'
+    channel: '"voltage0"'
+    comment: ''
+    device: '"ad9361-phy"'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    output: 'False'
+    samples_per_update: '32'
+    type: '1'
+    update_interval_ms: '1'
+    uri: '"ip:192.168.2.1"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [840, 708.0]
+    rotation: 0
+    state: enabled
+- name: iio_attr_source_0_0_0
+  id: iio_attr_source
+  parameters:
+    address: int("0x123",0)
+    affinity: ''
+    alias: ''
+    attr_type: '0'
+    attribute: '"hardwaregain"'
+    channel: '"voltage0"'
+    comment: ''
+    device: '"ad9361-phy"'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    output: 'False'
+    samples_per_update: '32'
+    type: '1'
+    update_interval_ms: '1'
+    uri: '"ip:192.168.2.1"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [32, 708.0]
     rotation: 0
     state: enabled
 - name: iio_pluto_sink_1
@@ -296,12 +734,12 @@ blocks:
     len_tag_key: ''
     samplerate: samp_rate
     type: fc32
-    uri: usb:1.5.5
+    uri: ip:192.168.2.1
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1416, 532.0]
+    coordinate: [1416, 420.0]
     rotation: 0
     state: enabled
 - name: iio_pluto_source_0
@@ -318,16 +756,16 @@ blocks:
     fpass: '0'
     frequency: center_freq
     fstop: '0'
-    gain1: '''slow_attack'''
+    gain1: '''hybrid'''
     len_tag_key: packet_len
-    manual_gain1: '64'
+    manual_gain1: attenuation
     maxoutbuf: '0'
     minoutbuf: '0'
     quadrature: 'True'
     rfdc: 'True'
     samplerate: samp_rate
     type: fc32
-    uri: usb:1.5.5
+    uri: ip:192.168.2.1
   states:
     bus_sink: false
     bus_source: false
@@ -361,7 +799,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [688, 588.0]
+    coordinate: [688, 476.0]
     rotation: 0
     state: enabled
 - name: lora_sdr_crc_verif_0
@@ -378,7 +816,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1552, 272.0]
+    coordinate: [1488, 280.0]
     rotation: 0
     state: enabled
 - name: lora_sdr_deinterleaver_0
@@ -394,7 +832,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [888, 304.0]
+    coordinate: [824, 308.0]
     rotation: 0
     state: enabled
 - name: lora_sdr_dewhitening_0
@@ -409,7 +847,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1432, 288.0]
+    coordinate: [1368, 296.0]
     rotation: 0
     state: enabled
 - name: lora_sdr_fft_demod_0
@@ -426,7 +864,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [552, 304.0]
+    coordinate: [488, 308.0]
     rotation: 0
     state: enabled
 - name: lora_sdr_frame_sync_0
@@ -449,7 +887,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [392, 272.0]
+    coordinate: [328, 276.0]
     rotation: 0
     state: enabled
 - name: lora_sdr_gray_demap_0
@@ -465,7 +903,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1080, 588.0]
+    coordinate: [1080, 476.0]
     rotation: 0
     state: enabled
 - name: lora_sdr_gray_mapping_0
@@ -481,7 +919,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [720, 304.0]
+    coordinate: [656, 308.0]
     rotation: 0
     state: enabled
 - name: lora_sdr_hamming_dec_0
@@ -497,7 +935,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1064, 304.0]
+    coordinate: [1000, 308.0]
     rotation: 0
     state: enabled
 - name: lora_sdr_hamming_enc_0
@@ -514,7 +952,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [816, 580.0]
+    coordinate: [816, 468.0]
     rotation: 0
     state: enabled
 - name: lora_sdr_header_0
@@ -532,7 +970,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [544, 572.0]
+    coordinate: [544, 460.0]
     rotation: 0
     state: enabled
 - name: lora_sdr_header_decoder_0
@@ -553,7 +991,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1240, 288.0]
+    coordinate: [1176, 292.0]
     rotation: 0
     state: enabled
 - name: lora_sdr_interleaver_0
@@ -572,7 +1010,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [952, 572.0]
+    coordinate: [952, 460.0]
     rotation: 0
     state: enabled
 - name: lora_sdr_modulate_0
@@ -593,7 +1031,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1232, 572.0]
+    coordinate: [1232, 460.0]
     rotation: 0
     state: enabled
 - name: lora_sdr_whitening_0
@@ -613,7 +1051,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [336, 584.0]
+    coordinate: [336, 468.0]
     rotation: 0
     state: enabled
 - name: qtgui_freq_sink_x_0
@@ -646,8 +1084,8 @@ blocks:
     color8: '"dark red"'
     color9: '"dark green"'
     comment: ''
-    ctrlpanel: 'False'
-    fc: '868000000'
+    ctrlpanel: 'True'
+    fc: center_freq
     fftsize: '1024'
     freqhalf: 'True'
     grid: 'False'
@@ -694,7 +1132,133 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [352, 480.0]
+    coordinate: [320, 620.0]
+    rotation: 0
+    state: enabled
+- name: qtgui_number_sink_0
+  id: qtgui_number_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    autoscale: 'False'
+    avg: '0'
+    color1: ("black", "black")
+    color10: ("black", "black")
+    color2: ("black", "black")
+    color3: ("black", "black")
+    color4: ("black", "black")
+    color5: ("black", "black")
+    color6: ("black", "black")
+    color7: ("black", "black")
+    color8: ("black", "black")
+    color9: ("black", "black")
+    comment: ''
+    factor1: '1'
+    factor10: '1'
+    factor2: '1'
+    factor3: '1'
+    factor4: '1'
+    factor5: '1'
+    factor6: '1'
+    factor7: '1'
+    factor8: '1'
+    factor9: '1'
+    graph_type: qtgui.NUM_GRAPH_HORIZ
+    gui_hint: ''
+    label1: ''
+    label10: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    max: '100'
+    min: '0'
+    name: '"RSSI"'
+    nconnections: '1'
+    type: float
+    unit1: ''
+    unit10: ''
+    unit2: ''
+    unit3: ''
+    unit4: ''
+    unit5: ''
+    unit6: ''
+    unit7: ''
+    unit8: ''
+    unit9: ''
+    update_time: '0.10'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1112, 676.0]
+    rotation: 0
+    state: disabled
+- name: qtgui_number_sink_1
+  id: qtgui_number_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    autoscale: 'False'
+    avg: '0'
+    color1: ("black", "black")
+    color10: ("black", "black")
+    color2: ("black", "black")
+    color3: ("black", "black")
+    color4: ("black", "black")
+    color5: ("black", "black")
+    color6: ("black", "black")
+    color7: ("black", "black")
+    color8: ("black", "black")
+    color9: ("black", "black")
+    comment: ''
+    factor1: '1'
+    factor10: '1'
+    factor2: '1'
+    factor3: '1'
+    factor4: '1'
+    factor5: '1'
+    factor6: '1'
+    factor7: '1'
+    factor8: '1'
+    factor9: '1'
+    graph_type: qtgui.NUM_GRAPH_HORIZ
+    gui_hint: ''
+    label1: ''
+    label10: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    max: '100'
+    min: '0'
+    name: '"Hardware Gain"'
+    nconnections: '1'
+    type: float
+    unit1: ''
+    unit10: ''
+    unit2: ''
+    unit3: ''
+    unit4: ''
+    unit5: ''
+    unit6: ''
+    unit7: ''
+    unit8: ''
+    unit9: ''
+    update_time: '0.10'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [320, 700.0]
     rotation: 0
     state: disabled
 - name: qtgui_time_sink_x_0
@@ -725,7 +1289,7 @@ blocks:
     color8: dark red
     color9: dark green
     comment: ''
-    ctrlpanel: 'False'
+    ctrlpanel: 'True'
     entags: 'True'
     grid: 'False'
     gui_hint: ''
@@ -791,17 +1355,219 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [360, 384.0]
+    coordinate: [328, 548.0]
     rotation: 0
-    state: disabled
+    state: enabled
+- name: qtgui_time_sink_x_0_0
+  id: qtgui_time_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'True'
+    axislabels: 'True'
+    color1: blue
+    color10: dark blue
+    color2: red
+    color3: green
+    color4: black
+    color5: cyan
+    color6: magenta
+    color7: yellow
+    color8: dark red
+    color9: dark green
+    comment: ''
+    ctrlpanel: 'True'
+    entags: 'True'
+    grid: 'False'
+    gui_hint: ''
+    label1: ''
+    label10: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    legend: 'True'
+    marker1: '-1'
+    marker10: '-1'
+    marker2: '-1'
+    marker3: '-1'
+    marker4: '-1'
+    marker5: '-1'
+    marker6: '-1'
+    marker7: '-1'
+    marker8: '-1'
+    marker9: '-1'
+    name: '"RSSI Calibration"'
+    nconnections: '1'
+    size: '1024'
+    srate: '1000'
+    stemplot: 'False'
+    style1: '1'
+    style10: '1'
+    style2: '1'
+    style3: '1'
+    style4: '1'
+    style5: '1'
+    style6: '1'
+    style7: '1'
+    style8: '1'
+    style9: '1'
+    tr_chan: '0'
+    tr_delay: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_slope: qtgui.TRIG_SLOPE_POS
+    tr_tag: '""'
+    type: float
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    ylabel: RSSI
+    ymax: '1'
+    ymin: '-1'
+    yunit: '"dB"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1120, 788.0]
+    rotation: 0
+    state: enabled
+- name: qtgui_time_sink_x_0_0_0
+  id: qtgui_time_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'True'
+    axislabels: 'True'
+    color1: blue
+    color10: dark blue
+    color2: red
+    color3: green
+    color4: black
+    color5: cyan
+    color6: magenta
+    color7: yellow
+    color8: dark red
+    color9: dark green
+    comment: ''
+    ctrlpanel: 'True'
+    entags: 'True'
+    grid: 'False'
+    gui_hint: ''
+    label1: ''
+    label10: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    legend: 'True'
+    marker1: '-1'
+    marker10: '-1'
+    marker2: '-1'
+    marker3: '-1'
+    marker4: '-1'
+    marker5: '-1'
+    marker6: '-1'
+    marker7: '-1'
+    marker8: '-1'
+    marker9: '-1'
+    name: '"Hardware Gain"'
+    nconnections: '1'
+    size: '1024'
+    srate: '1000'
+    stemplot: 'False'
+    style1: '1'
+    style10: '1'
+    style2: '1'
+    style3: '1'
+    style4: '1'
+    style5: '1'
+    style6: '1'
+    style7: '1'
+    style8: '1'
+    style9: '1'
+    tr_chan: '0'
+    tr_delay: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_slope: qtgui.TRIG_SLOPE_POS
+    tr_tag: '""'
+    type: float
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    ylabel: Gain
+    ymax: '1'
+    ymin: '-1'
+    yunit: '"dB"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [312, 796.0]
+    rotation: 0
+    state: enabled
 
 connections:
 - [epy_block_1, '0', lora_sdr_whitening_0, '0']
+- [epy_block_2, '0', epy_block_0_0, '0']
+- [epy_block_3, '0', epy_block_0_1, '0']
+- [epy_block_4, '0', epy_block_0_2, '0']
+- [iio_attr_source_0_0, '0', qtgui_number_sink_0, '0']
+- [iio_attr_source_0_0, '0', qtgui_time_sink_x_0_0, '0']
+- [iio_attr_source_0_0_0, '0', qtgui_number_sink_1, '0']
+- [iio_attr_source_0_0_0, '0', qtgui_time_sink_x_0_0_0, '0']
 - [iio_pluto_source_0, '0', lora_sdr_frame_sync_0, '0']
 - [iio_pluto_source_0, '0', qtgui_freq_sink_x_0, '0']
 - [iio_pluto_source_0, '0', qtgui_time_sink_x_0, '0']
 - [lora_sdr_add_crc_0, '0', lora_sdr_hamming_enc_0, '0']
 - [lora_sdr_crc_verif_0, '0', epy_block_0, '0']
+- [lora_sdr_crc_verif_0, msg, epy_block_4, msg_in]
 - [lora_sdr_deinterleaver_0, '0', lora_sdr_hamming_dec_0, '0']
 - [lora_sdr_dewhitening_0, '0', lora_sdr_crc_verif_0, '0']
 - [lora_sdr_fft_demod_0, '0', lora_sdr_gray_mapping_0, '0']
